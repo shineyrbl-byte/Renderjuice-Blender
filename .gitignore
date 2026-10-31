@@ -1,0 +1,5 @@
+frames/
+stills/
+*.blend1
+render.log
+.DS_Store
