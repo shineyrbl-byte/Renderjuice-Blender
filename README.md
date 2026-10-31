@@ -1,6 +1,8 @@
 # Renderjuice-Blender: ESCAPE VELOCITY
 Avisha Srivastava
 
+▶ **Watch:** https://youtu.be/HSAlY_cOA3o
+
 This is a 16-second, fully procedural Blender animation about **Speed**, made for the RenderJuice Blender Animation & Programmatic Rendering Contest.
 
 A glowing orb launches through a neon tunnel, reaches Mach 3, and brakes in a shower of sparks. It crosses the finish line and finds a snail already on the 1st-place podium.
