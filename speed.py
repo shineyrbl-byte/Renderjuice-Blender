@@ -435,52 +435,65 @@ make_obj('Podium', 'cube', M_PODIUM, loc=(0, PODIUM_Y, TOP / 2), scale=(1.1, 1.1
 make_obj('PodiumTrim', 'cube', M_GOLDGLOW, loc=(0, PODIUM_Y, TOP + 0.01), scale=(1.12, 1.12, 0.015))
 make_text('PodiumNum', '1', M_GOLDGLOW, size=0.55, loc=(1.12, PODIUM_Y, TOP / 2), rot=(math.pi / 2, 0, math.pi / 2), extrude=0.03)
 
-snail = link(bpy.data.objects.new('Snail', None))
-snail.location = (0, PODIUM_Y - 0.1, TOP)
-snail.rotation_euler = (0, 0, 0)
-
-
-def snail_part(name, kind, mat, loc, scale, **kw):
-    ob = make_obj(name, kind, mat, loc=loc, scale=scale, smooth_shade=True, **kw)
-    ob.parent = snail
-    return ob
-
-
-snail_part('SnailBody', 'sphere', M_SNAILBODY, (0, -0.05, 0.12), (0.2, 0.62, 0.13), segments=32, ring_count=16)
-snail_part('SnailHead', 'sphere', M_SNAILBODY, (0, -0.55, 0.2), (0.15, 0.17, 0.16), segments=32, ring_count=16)
-snail_part('Shell', 'sphere', M_SHELL, (0, 0.12, 0.48), (0.2, 0.36, 0.36), segments=48, ring_count=24)
-# spiral painted on the shell side (procedural curve)
+# spiral painted on the shell side (procedural curve, shared by both snails)
 cu = bpy.data.curves.new('SpiralCurve', 'CURVE')
 cu.dimensions = '3D'
 cu.bevel_depth = 0.018
+cu.materials.append(M_SPIRAL)
 sp = cu.splines.new('POLY')
-turns = 2.6
-n = 90
-sp.points.add(n - 1)
-for k in range(n):
-    t = k / (n - 1)
-    a = t * turns * 2 * math.pi
+sp.points.add(89)
+for k in range(90):
+    t = k / 89
+    a = t * 2.6 * 2 * math.pi
     r = 0.3 * (1 - t) + 0.02
     sp.points[k].co = (0.0, r * math.cos(a), r * math.sin(a), 1)
-for sx in (1, -1):
-    spo = link(bpy.data.objects.new('Spiral', cu))
-    spo.data.materials.append(M_SPIRAL) if not spo.data.materials else None
-    spo.parent = snail
-    spo.location = (0.2 * sx, 0.12, 0.48)
-    spo.scale = (1, 1.0, 1.0)
-stalks = []
-for sx in (1, -1):
-    st = link(bpy.data.objects.new('Stalk', None))
-    st.parent = snail
-    st.location = (0.06 * sx, -0.6, 0.3)
-    st.rotation_euler = (math.radians(-12), math.radians(14 * sx), 0)
-    stalks.append(st)
-    s1 = make_obj('StalkCyl', 'cyl', M_SNAILBODY, loc=(0, 0, 0.17), scale=(0.022, 0.022, 0.17), vertices=12)
-    s1.parent = st
-    eye = make_obj('SnailEye', 'sphere', M_EYEWHITE, loc=(0, 0, 0.36), scale=(0.06, 0.06, 0.06), smooth_shade=True)
-    eye.parent = st
-    pup = make_obj('SnailPupil', 'sphere', M_BLACK, loc=(0, -0.045, 0.37), scale=(0.03, 0.03, 0.03), smooth_shade=True)
-    pup.parent = st
+
+
+def build_snail(name, loc, rot_z):
+    root = link(bpy.data.objects.new(name, None))
+    root.location = loc
+    root.rotation_euler = (0, 0, rot_z)
+
+    def part(pname, kind, mat, ploc, scale, **kw):
+        ob = make_obj(pname, kind, mat, loc=ploc, scale=scale, smooth_shade=True, **kw)
+        ob.parent = root
+        return ob
+
+    part('SnailBody', 'sphere', M_SNAILBODY, (0, -0.05, 0.12), (0.2, 0.62, 0.13), segments=32, ring_count=16)
+    part('SnailHead', 'sphere', M_SNAILBODY, (0, -0.55, 0.2), (0.15, 0.17, 0.16), segments=32, ring_count=16)
+    part('Shell', 'sphere', M_SHELL, (0, 0.12, 0.48), (0.2, 0.36, 0.36), segments=48, ring_count=24)
+    for sx in (1, -1):
+        spo = link(bpy.data.objects.new('Spiral', cu))
+        spo.parent = root
+        spo.location = (0.2 * sx, 0.12, 0.48)
+    stl = []
+    for sx in (1, -1):
+        st = link(bpy.data.objects.new('Stalk', None))
+        st.parent = root
+        st.location = (0.06 * sx, -0.6, 0.3)
+        st.rotation_euler = (math.radians(-12), math.radians(14 * sx), 0)
+        stl.append(st)
+        s1 = make_obj('StalkCyl', 'cyl', M_SNAILBODY, loc=(0, 0, 0.17), scale=(0.022, 0.022, 0.17), vertices=12)
+        s1.parent = st
+        eye = make_obj('SnailEye', 'sphere', M_EYEWHITE, loc=(0, 0, 0.36), scale=(0.06, 0.06, 0.06), smooth_shade=True)
+        eye.parent = st
+        pup = make_obj('SnailPupil', 'sphere', M_BLACK, loc=(0, -0.045, 0.37), scale=(0.03, 0.03, 0.03), smooth_shade=True)
+        pup.parent = st
+    return root, stl
+
+
+# the winner, already waiting on the podium (faces back toward the orb)
+snail, stalks = build_snail('Snail', (0, PODIUM_Y - 0.1, TOP), 0.0)
+# the same snail on the start line next to the orb, facing down the track
+start_snail, st2 = build_snail('SnailStart', (1.3, 0.35, 0), math.pi)
+sl_d = bpy.data.lights.new('SnailStartLight', 'POINT')
+sl_d.energy = 60
+sl_d.color = (1.0, 0.8, 0.55)
+link(bpy.data.objects.new('SnailStartLight', sl_d)).location = (1.9, 1.6, 1.4)
+stalks += st2
+for f in range(1, F_END + 1, 4):   # inches forward after GO
+    start_snail.location = (1.3, 0.35 + 0.004 * max(0, f - F_LAUNCH), 0)
+    start_snail.keyframe_insert('location', frame=f)
 # trophy
 tro = link(bpy.data.objects.new('Trophy', None))
 tro.location = (-0.55, PODIUM_Y + 0.35, TOP)
@@ -606,7 +619,7 @@ print(f"[speed] sparks: {spark_count}")
 # snail idle animation: eye stalks sway, then both eyes turn to the orb
 for f in range(1, F_END + 1, 2):
     for j, st in enumerate(stalks):
-        sx = 1 if j == 0 else -1
+        sx = 1 if j % 2 == 0 else -1
         st.rotation_euler = (math.radians(-12 + 8 * math.sin(f * 0.11 + j)),
                              math.radians(14 * sx + 6 * math.sin(f * 0.07 + 2 * j)), 0)
         st.keyframe_insert('rotation_euler', frame=f)
@@ -638,10 +651,14 @@ for f in range(1, F_END + 1):
     k = vel[f] / VMAX
     roll = 0.0
     if f < F_LAUNCH:
-        u = smooth((f - 1) / (F_LAUNCH - 8))
-        cp = lerp3((3.6, -4.6, 0.45), (0, -6.0, 1.7), u)
-        tp = lerp3((0, 6, 3.0), (0, 10, 0.9), u)
-        lens = lerp(24, 38, u)
+        # front "line-up" shot of orb + snail, orbiting round to the chase position
+        u = smooth((f - 6) / 50)
+        cx = lerp(0.65, 0.0, u)
+        ang = lerp(math.pi / 2, -math.pi / 2, u)
+        rad = lerp(4.6, 6.3, u)
+        cp = (cx + rad * math.cos(ang) * 0.75, 0.3 + rad * math.sin(ang), lerp(0.75, 1.7, u))
+        tp = lerp3((0.65, 0.3, 0.55), (0, 10, 0.9), smooth((f - 24) / 34))
+        lens = lerp(30, 38, u)
         amp = 0.012 if f > 48 else 0.0
     elif f < F_REVEAL:
         lag = 3.0 * (1 - math.exp(-(f - F_LAUNCH) / 3)) * math.exp(-(f - F_LAUNCH) / 14)

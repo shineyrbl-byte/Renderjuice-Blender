@@ -6,7 +6,7 @@
 
 ## Short description (interpretation of Speed)
 
-A tiny glowing orb lines up for the race of its life. Three red lights, one green: it launches through a neon tunnel of arches and a city skyline. It goes from 0 to Mach 3 in eight seconds while the camera widens, shakes, and falls behind. It slams the brakes in a shower of sparks, crosses the finish line, and turns to celebrate. A snail is already on the 1st-place podium holding the trophy. The orb deflates.
+A tiny glowing orb lines up for the race of its life, next to its only rival: a snail. Three red lights, one green. The snail inches off the line, and the orb launches through a neon tunnel of arches and a city skyline. It goes from 0 to Mach 3 in eight seconds while the camera widens, shakes, and falls behind. It slams the brakes in a shower of sparks, crosses the finish line, and turns to celebrate. The snail is already on the 1st-place podium holding the trophy. Nobody knows how. The orb deflates.
 
 Speed is relative.
 
